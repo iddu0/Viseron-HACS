@@ -133,65 +133,10 @@ async def async_validate_input(
     return (errors, authentication)
 
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for MJPEG IP Camera."""
-
-    VERSION = 1
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: ConfigEntry,
-    ) -> MJPEGOptionsFlowHandler:
-        """Get the options flow for this handler."""
-        return MJPEGOptionsFlowHandler()
-
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Handle a flow initialized by the user."""
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            errors, authentication = await async_validate_input(self.hass, user_input)
-            if not errors:
-                self._async_abort_entries_match(
-                    {CONF_MJPEG_URL: user_input[CONF_MJPEG_URL]}
-                )
-
-                # Storing data in option, to allow for changing them later
-                # using an options flow.
-                return self.async_create_entry(
-                    title=user_input.get(CONF_NAME, user_input[CONF_MJPEG_URL]),
-                    data={},
-                    options={
-                        CONF_AUTHENTICATION: authentication,
-                        CONF_MJPEG_URL: user_input[CONF_MJPEG_URL],
-                        CONF_PASSWORD: user_input[CONF_PASSWORD],
-                        CONF_STILL_IMAGE_URL: user_input.get(CONF_STILL_IMAGE_URL),
-                        CONF_USERNAME: user_input.get(CONF_USERNAME),
-                        CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
-                    },
-                )
-        else:
-            user_input = {}
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=async_get_schema(user_input, show_name=True),
-            errors=errors,
-        )
-
-
 class MJPEGOptionsFlowHandler(OptionsFlow):
     """Handle MJPEG IP Camera options."""
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Manage MJPEG IP Camera options."""
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
-
         if user_input is not None:
             errors, authentication = await async_validate_input(self.hass, user_input)
             if not errors:
@@ -222,6 +167,45 @@ class MJPEGOptionsFlowHandler(OptionsFlow):
             data_schema=async_get_schema(user_input or self.config_entry.options),
             errors=errors,
         )
+
+
+class MJPEGFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for MJPEG IP Camera."""
+
+    VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> MJPEGOptionsFlowHandler:
+        return MJPEGOptionsFlowHandler()
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            errors, authentication = await async_validate_input(self.hass, user_input)
+            if not errors:
+                self._async_abort_entries_match({CONF_MJPEG_URL: user_input[CONF_MJPEG_URL]})
+                return self.async_create_entry(
+                    title=user_input.get(CONF_NAME, user_input[CONF_MJPEG_URL]),
+                    data={},
+                    options={
+                        CONF_AUTHENTICATION: authentication,
+                        CONF_MJPEG_URL: user_input[CONF_MJPEG_URL],
+                        CONF_PASSWORD: user_input[CONF_PASSWORD],
+                        CONF_STILL_IMAGE_URL: user_input.get(CONF_STILL_IMAGE_URL),
+                        CONF_USERNAME: user_input.get(CONF_USERNAME),
+                        CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
+                    },
+                )
+        else:
+            user_input = {}
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=async_get_schema(user_input, show_name=True),
+            errors=errors,
+        )
+
 
 
 class InvalidAuth(HomeAssistantError):
