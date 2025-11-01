@@ -4,5 +4,6 @@
   "version": "0.0.1",
   "documentation": "https://github.com/iddu0/Viseron-HACS",
   "requirements": [],
-  "codeowners": ["@iddu0"]
+  "codeowners": ["@iddu0"],
+  "config_flow": true
 }
