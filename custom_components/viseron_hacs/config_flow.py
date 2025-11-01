@@ -1,5 +1,8 @@
 """Config flow to configure the MJPEG IP Camera integration."""
 
+from homeassistant import config_entries
+from .const import DOMAIN
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -130,7 +133,7 @@ async def async_validate_input(
     return (errors, authentication)
 
 
-class MJPEGFlowHandler(ConfigFlow, domain=DOMAIN):
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for MJPEG IP Camera."""
 
     VERSION = 1
