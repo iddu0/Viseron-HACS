@@ -4,7 +4,7 @@ import voluptuous as vol # voluptuous is a VERY hard word to type LMAOO
 
 from .const import DOMAIN
 
-class ExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
