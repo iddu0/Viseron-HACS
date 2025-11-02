@@ -1,6 +1,6 @@
 {
-  "domain": "mjpeg",
-  "name": "MJPEG IP Camera",
+  "domain": "viseron_hacs",
+  "name": "Viseron HACS",
   "codeowners": [],
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/mjpeg",
