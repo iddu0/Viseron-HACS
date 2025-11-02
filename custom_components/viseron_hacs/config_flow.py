@@ -7,7 +7,6 @@ from http import HTTPStatus
 from typing import Any
 
 import requests
-from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 from requests.exceptions import HTTPError, Timeout
 import voluptuous as vol
 
@@ -18,11 +17,8 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 from homeassistant.const import (
-    CONF_AUTHENTICATION,
     CONF_NAME,
     CONF_VERIFY_SSL,
-    HTTP_BASIC_AUTHENTICATION,
-    HTTP_DIGEST_AUTHENTICATION,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
@@ -85,76 +81,75 @@ class MJPEGFlowHandler(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: ConfigEntry,
-    ) -> MJPEGOptionsFlowHandler:
+    ) -> "MJPEGOptionsFlowHandler":
         """Get the options flow for this handler."""
         return MJPEGOptionsFlowHandler()
 
     async def async_step_user(
-    self, user_input: dict[str, Any] | None = None
-) -> ConfigFlowResult:
-    """Handle a flow initialized by the user."""
-    errors: dict[str, str] = {}
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle a flow initialized by the user."""
+        errors: dict[str, str] = {}
 
-    if user_input is not None:
-        errors = await async_validate_input(self.hass, user_input)
-        if not errors:
-            self._async_abort_entries_match(
-                {CONF_MJPEG_URL: user_input[CONF_MJPEG_URL]}
-            )
-
-            return self.async_create_entry(
-                title=user_input.get(CONF_NAME, user_input[CONF_MJPEG_URL]),
-                data={},
-                options={
-                    CONF_MJPEG_URL: user_input[CONF_MJPEG_URL],
-                    CONF_STILL_IMAGE_URL: user_input.get(CONF_STILL_IMAGE_URL),
-                    CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
-                },
-            )
-
-    else:
-        user_input = {}
-
-    return self.async_show_form(
-        step_id="user",
-        data_schema=async_get_schema(user_input, show_name=True),
-        errors=errors,
-    )
-
-class MJPEGOptionsFlowHandler(OptionsFlow):
-    """Handle MJPEG IP Camera options."""
-
-    async def async_step_init(
-    self, user_input: dict[str, Any] | None = None
-) -> ConfigFlowResult:
-    errors: dict[str, str] = {}
-
-    if user_input is not None:
-        errors = await async_validate_input(self.hass, user_input)
-        if not errors:
-            for entry in self.hass.config_entries.async_entries(DOMAIN):
-                if (
-                    entry.entry_id != self.config_entry.entry_id
-                    and entry.options[CONF_MJPEG_URL] == user_input[CONF_MJPEG_URL]
-                ):
-                    errors = {CONF_MJPEG_URL: "already_configured"}
-
+        if user_input is not None:
+            errors = await async_validate_input(self.hass, user_input)
             if not errors:
+                self._async_abort_entries_match(
+                    {CONF_MJPEG_URL: user_input[CONF_MJPEG_URL]}
+                )
+
                 return self.async_create_entry(
                     title=user_input.get(CONF_NAME, user_input[CONF_MJPEG_URL]),
-                    data={
+                    data={},
+                    options={
                         CONF_MJPEG_URL: user_input[CONF_MJPEG_URL],
                         CONF_STILL_IMAGE_URL: user_input.get(CONF_STILL_IMAGE_URL),
                         CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
                     },
                 )
 
-    else:
-        user_input = {}
+        else:
+            user_input = {}
 
-    return self.async_show_form(
-        step_id="init",
-        data_schema=async_get_schema(user_input or self.config_entry.options),
-        errors=errors,
-    )
+        return self.async_show_form(
+            step_id="user",
+            data_schema=async_get_schema(user_input, show_name=True),
+            errors=errors,
+        )
 
+class MJPEGOptionsFlowHandler(OptionsFlow):
+    """Handle MJPEG IP Camera options."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            errors = await async_validate_input(self.hass, user_input)
+            if not errors:
+                for entry in self.hass.config_entries.async_entries(DOMAIN):
+                    if (
+                        entry.entry_id != self.config_entry.entry_id
+                        and entry.options[CONF_MJPEG_URL] == user_input[CONF_MJPEG_URL]
+                    ):
+                        errors = {CONF_MJPEG_URL: "already_configured"}
+
+                if not errors:
+                    return self.async_create_entry(
+                        title=user_input.get(CONF_NAME, user_input[CONF_MJPEG_URL]),
+                        data={
+                            CONF_MJPEG_URL: user_input[CONF_MJPEG_URL],
+                            CONF_STILL_IMAGE_URL: user_input.get(CONF_STILL_IMAGE_URL),
+                            CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
+                        },
+                    )
+
+        else:
+            user_input = {}
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=async_get_schema(user_input or self.config_entry.options),
+            errors=errors,
+        )
