@@ -5,7 +5,7 @@ from typing import Final
 
 from homeassistant.const import Platform
 
-DOMAIN: Final = "mjpeg"
+DOMAIN: Final = "viseron_hacs"
 PLATFORMS: Final = [Platform.CAMERA]
 
 LOGGER = logging.getLogger(__package__)
